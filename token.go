@@ -40,8 +40,8 @@ import (
 	"github.com/gocql/gocql/internal/murmur"
 )
 
-// a token partitioner
-type partitioner interface {
+// a token Partitioner
+type Partitioner interface {
 	Name() string
 	Hash([]byte) Token
 	ParseString(string) Token
@@ -49,14 +49,15 @@ type partitioner interface {
 
 // Token is a Cassandra token.
 // It can be used in queries such as:
-//  session.Query("SELECT * FROM my_table WHERE TOKEN(id) > ?", token)
+//
+//	session.Query("SELECT * FROM my_table WHERE TOKEN(id) > ?", token)
 type Token interface {
 	fmt.Stringer
 	Marshaler
 	Less(Token) bool
 }
 
-// murmur3 partitioner and token
+// murmur3 Partitioner and token
 type murmur3Partitioner struct{}
 type murmur3Token int64
 
@@ -87,7 +88,7 @@ func (m murmur3Token) MarshalCQL(info TypeInfo) ([]byte, error) {
 	return Marshal(info, int64(m))
 }
 
-// order preserving partitioner and token
+// order preserving Partitioner and token
 type orderedPartitioner struct{}
 type orderedToken string
 
@@ -116,7 +117,7 @@ func (o orderedToken) MarshalCQL(info TypeInfo) ([]byte, error) {
 	return Marshal(info, string(o))
 }
 
-// random partitioner and token
+// random Partitioner and token
 type randomPartitioner struct{}
 type randomToken big.Int
 
@@ -168,7 +169,7 @@ func (ht hostToken) String() string {
 
 // TokenRing is a data structure for organizing the relationship between tokens and hosts
 type TokenRing struct {
-	partitioner partitioner
+	partitioner Partitioner
 
 	// tokens map token range to primary replica.
 	// The elements in tokens are sorted by token ascending.
@@ -192,7 +193,7 @@ func newTokenRing(partitioner string, hosts []*HostInfo) (*TokenRing, error) {
 	} else if strings.HasSuffix(partitioner, "RandomPartitioner") {
 		tokenRing.partitioner = randomPartitioner{}
 	} else {
-		return nil, fmt.Errorf("unsupported partitioner '%s'", partitioner)
+		return nil, fmt.Errorf("unsupported Partitioner '%s'", partitioner)
 	}
 
 	for _, host := range hosts {
@@ -241,6 +242,10 @@ func (t *TokenRing) String() string {
 	return string(buf.Bytes())
 }
 
+func (t *TokenRing) Partitioner() Partitioner {
+	return t.partitioner
+}
+
 // Tokens returns the token range corresponding to the primary replica.
 // The elements are sorted by token ascending.
 // The range for a given item starts after preceding range and ends with the token at the current position.
@@ -249,6 +254,7 @@ func (t *TokenRing) String() string {
 // You can obtain the owner host/vnode of the range by calling HostForToken with the end token.
 //
 // The following example constructs one TOKEN-based query for each token range:
+//
 //	func buildTokenQueries(s *Session, t *TokenRing) []*Query {
 //		tokens := t.Tokens()
 //		if len(tokens) == 0 {

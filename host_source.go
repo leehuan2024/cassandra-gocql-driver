@@ -538,10 +538,10 @@ func (s *Session) hostInfoFromMap(row map[string]interface{}, host *HostInfo) (*
 			if !ok {
 				return nil, fmt.Errorf(assertErrorMsg, "cluster_name")
 			}
-		case "partitioner":
+		case "Partitioner":
 			host.partitioner, ok = value.(string)
 			if !ok {
-				return nil, fmt.Errorf(assertErrorMsg, "partitioner")
+				return nil, fmt.Errorf(assertErrorMsg, "Partitioner")
 			}
 		case "broadcast_address":
 			ip, ok := value.(string)

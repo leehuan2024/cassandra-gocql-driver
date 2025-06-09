@@ -42,7 +42,7 @@ type SetHosts interface {
 	SetHosts(hosts []*HostInfo)
 }
 
-// interface to implement to receive the partitioner value
+// interface to implement to receive the Partitioner value
 type SetPartitioner interface {
 	SetPartitioner(partitioner string)
 }

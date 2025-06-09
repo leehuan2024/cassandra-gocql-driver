@@ -46,7 +46,7 @@ func TestMurmur3Partitioner(t *testing.T) {
 		t.Errorf("Expected '-1053604476080545076' but was '%s'", token)
 	}
 
-	// at least verify that the partitioner
+	// at least verify that the Partitioner
 	// doesn't return nil
 	pk, _ := marshalInt(nil, 1)
 	token = murmur3Partitioner{}.Hash(pk)
@@ -70,7 +70,7 @@ func TestMurmur3Token(t *testing.T) {
 
 // Tests of the orderedPartitioner
 func TestOrderedPartitioner(t *testing.T) {
-	// at least verify that the partitioner
+	// at least verify that the Partitioner
 	// doesn't return nil
 	p := orderedPartitioner{}
 	pk, _ := marshalInt(nil, 1)
@@ -106,7 +106,7 @@ func TestOrderedToken(t *testing.T) {
 
 // Tests of the randomPartitioner
 func TestRandomPartitioner(t *testing.T) {
-	// at least verify that the partitioner
+	// at least verify that the Partitioner
 	// doesn't return nil
 	p := randomPartitioner{}
 	pk, _ := marshalInt(nil, 1)
@@ -136,7 +136,7 @@ func TestRandomPartitionerMatchesReference(t *testing.T) {
 	expect := "12707736894140473154801792860916528374"
 	actual := p.Hash([]byte("test")).String()
 	if actual != expect {
-		t.Errorf("expected random partitioner to generate tokens in the same way as the reference"+
+		t.Errorf("expected random Partitioner to generate tokens in the same way as the reference"+
 			" python client. Expected %s, but got %s", expect, actual)
 	}
 }
@@ -231,11 +231,11 @@ func TestTokenRing_Nil(t *testing.T) {
 	}
 }
 
-// Test of the recognition of the partitioner class
+// Test of the recognition of the Partitioner class
 func TestTokenRing_UnknownPartition(t *testing.T) {
 	_, err := newTokenRing("UnknownPartitioner", nil)
 	if err == nil {
-		t.Error("Expected error for unknown partitioner value, but was nil")
+		t.Error("Expected error for unknown Partitioner value, but was nil")
 	}
 }
 

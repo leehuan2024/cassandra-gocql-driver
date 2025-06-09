@@ -482,7 +482,7 @@ func TestHostPolicy_TokenAware(t *testing.T) {
 		return &ClusterMetadata{} // no replicas here, force the policy to use the fallback for now
 	}
 
-	// the token ring is not setup without the partitioner, but the fallback
+	// the token ring is not setup without the Partitioner, but the fallback
 	// should work
 	if actual := policy.Pick(nil)(); actual == nil {
 		t.Fatal("expected to get host from fallback got nil")
@@ -681,7 +681,7 @@ func TestHostPolicy_TokenAware_RackAware(t *testing.T) {
 		policyWithFallback.AddHost(host)
 	}
 
-	// the token ring is not setup without the partitioner, but the fallback
+	// the token ring is not setup without the Partitioner, but the fallback
 	// should work
 	if actual := policy.Pick(nil)(); actual == nil {
 		t.Fatal("expected to get host from fallback got nil")

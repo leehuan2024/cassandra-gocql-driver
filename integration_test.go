@@ -71,7 +71,7 @@ func TestGetHosts(t *testing.T) {
 
 	assertTrue(t, "err == nil", err == nil)
 	assertEqual(t, "len(hosts)", len(clusterHosts), len(hosts))
-	assertTrue(t, "len(partitioner) != 0", len(partitioner) != 0)
+	assertTrue(t, "len(Partitioner) != 0", len(partitioner) != 0)
 }
 
 // TestRingDiscovery makes sure that you can autodiscover other cluster members
