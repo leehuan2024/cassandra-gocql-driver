@@ -29,7 +29,6 @@
 package gocql
 
 import (
-	"fmt"
 	"net"
 	"sort"
 	"strings"

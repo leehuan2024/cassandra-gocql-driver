@@ -680,8 +680,8 @@ func marshalBigInt(info TypeInfo, value interface{}) ([]byte, error) {
 		return encBigInt(int64(v)), nil
 	case uint8:
 		return encBigInt(int64(v)), nil
-	case *big.Int:
-		return encBigInt2C(&v), nil
+	//case *big.Int:
+	//	return encBigInt2C(&v), nil
 	case big.Int:
 		if !v.IsInt64() {
 			return nil, marshalErrorf("marshal bigint: value %v out of range", &v)

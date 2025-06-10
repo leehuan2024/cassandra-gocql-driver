@@ -2401,3 +2401,85 @@ func NewErrProtocol(format string, args ...interface{}) error {
 // BatchSizeMaximum is the maximum number of statements a batch operation can have.
 // This limit is set by cassandra and could change in the future.
 const BatchSizeMaximum = 65535
+
+// PartitionedBatch helps to partition batches by host using tokenAwareHostPolicy
+type PartitionedBatch struct {
+	session     *Session
+	statement   string
+	tokenRing   *TokenRing
+	batchTyp    BatchType
+	batches     map[string]*Batch
+	idempotent  bool
+	consistency Consistency
+	keySpace    string
+}
+
+func (s *Session) NewPartitionedBatch(statement string, typ BatchType, idempotent bool, consistency Consistency, keySpace string) (*PartitionedBatch, error) {
+
+	// partitioned batch useless for other host policies
+	p, ok := s.policy.(*tokenAwareHostPolicy)
+	if !ok {
+		return nil, errors.New("tokenAwareHostPolicy should be used as HostSelectionPolicy for current session")
+	}
+
+	return &PartitionedBatch{
+		session:     s,
+		statement:   statement,
+		tokenRing:   p.getMetadataReadOnly().TokenRing(),
+		batchTyp:    typ,
+		batches:     make(map[string]*Batch),
+		idempotent:  idempotent,
+		consistency: consistency,
+		keySpace:    keySpace,
+	}, nil
+}
+
+const emptyHostID = "emptyHostID"
+
+func (b *PartitionedBatch) Query(args ...interface{}) error {
+	routingKey, err := b.getRoutingKey(context.Background(), b.statement, args...)
+	if err != nil {
+		return err
+	}
+
+	hostID := emptyHostID
+	token := b.tokenRing.partitioner.Hash(routingKey)
+	if host, _ := b.tokenRing.HostForToken(token); host != nil {
+		hostID = host.HostID()
+	}
+
+	batch, ok := b.batches[hostID]
+	if !ok {
+		batch = b.session.NewBatch(b.batchTyp)
+		batch.routingKey = routingKey
+		batch.SetConsistency(b.consistency)
+		batch.IsIdempotent()
+		b.batches[hostID] = batch
+	}
+
+	batch.Query(b.statement, args...)
+	if b.idempotent {
+		batch.Entries[len(batch.Entries)-1].Idempotent = b.idempotent
+	}
+	return nil
+}
+
+// Batches return batch object for future execution. You can execute it in parallel or consequentially
+func (b *PartitionedBatch) Batches() (batches []*Batch) {
+	for _, v := range b.batches {
+		batches = append(batches, v)
+	}
+	return
+}
+
+func (b *PartitionedBatch) getRoutingKey(ctx context.Context, stmt string, args ...interface{}) ([]byte, error) {
+	routingKeyInfo, err := b.session.routingKeyInfo(ctx, stmt, b.keySpace)
+	if err != nil {
+		return nil, err
+	}
+
+	if routingKeyInfo == nil {
+		return nil, nil
+	}
+	return createRoutingKey(routingKeyInfo, args)
+}
