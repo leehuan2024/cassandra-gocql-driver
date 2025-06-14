@@ -2443,9 +2443,14 @@ func (b *PartitionedBatch) Query(args ...interface{}) error {
 	}
 
 	hostID := emptyHostID
-	token := b.tokenRing.partitioner.Hash(routingKey)
-	if host, _ := b.tokenRing.HostForToken(token); host != nil {
-		hostID = host.HostID()
+
+	if b.tokenRing != nil {
+		token := b.tokenRing.partitioner.Hash(routingKey)
+		if host, _ := b.tokenRing.HostForToken(token); host != nil {
+			hostID = host.HostID()
+		}
+	} else {
+		fmt.Println("====hostID: ", hostID)
 	}
 
 	batch, ok := b.batches[hostID]
