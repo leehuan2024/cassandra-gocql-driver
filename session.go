@@ -2417,15 +2417,15 @@ type PartitionedBatch struct {
 func (s *Session) NewPartitionedBatch(statement string, typ BatchType, idempotent bool, consistency Consistency, keySpace string) (*PartitionedBatch, error) {
 
 	// partitioned batch useless for other host policies
-	p, ok := s.policy.(*tokenAwareHostPolicy)
-	if !ok {
-		return nil, errors.New("tokenAwareHostPolicy should be used as HostSelectionPolicy for current session")
-	}
+	//p, ok := s.policy.(*tokenAwareHostPolicy)
+	//if !ok {
+	//	return nil, errors.New("tokenAwareHostPolicy should be used as HostSelectionPolicy for current session")
+	//}
 
 	return &PartitionedBatch{
 		session:     s,
 		statement:   statement,
-		tokenRing:   p.getMetadataReadOnly().TokenRing(),
+		tokenRing:   s.ClusterMetadata().tokenRing,
 		batchTyp:    typ,
 		batches:     make(map[string]*Batch),
 		idempotent:  idempotent,
@@ -2449,9 +2449,8 @@ func (b *PartitionedBatch) Query(args ...interface{}) error {
 		if host, _ := b.tokenRing.HostForToken(token); host != nil {
 			hostID = host.HostID()
 		}
-	} else {
-		fmt.Println("====hostID: ", hostID)
 	}
+	fmt.Println("====hostID: ", hostID)
 
 	batch, ok := b.batches[hostID]
 	if !ok {
