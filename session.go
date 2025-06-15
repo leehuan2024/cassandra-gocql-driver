@@ -2450,7 +2450,7 @@ func (b *PartitionedBatch) Query(args ...interface{}) error {
 			hostID = host.HostID()
 		}
 	}
-	fmt.Println("====hostID: ", hostID)
+	b.session.logger.Println("====hostID: ", hostID)
 
 	batch, ok := b.batches[hostID]
 	if !ok {
